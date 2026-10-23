@@ -2,6 +2,14 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProductList } from "../src/components/product-list";
 
+function productPage(
+	data: unknown[],
+	total = data.length,
+	categories: string[] = [],
+) {
+	return { data, page: 1, limit: 12, total, categories };
+}
+
 const product = {
 	id: 1,
 	name: "Coffee",
@@ -27,7 +35,7 @@ describe("ProductList", () => {
 			"fetch",
 			vi.fn().mockResolvedValue({
 				ok: true,
-				json: async () => [],
+				json: async () => productPage([]),
 			}),
 		);
 
@@ -43,7 +51,7 @@ describe("ProductList", () => {
 			.mockRejectedValueOnce(new Error("network"))
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => [product],
+				json: async () => productPage([product], 1, ["Drinks"]),
 			});
 		vi.stubGlobal("fetch", fetchMock);
 
@@ -52,9 +60,10 @@ describe("ProductList", () => {
 		expect(await screen.findByText("Could not load products")).toBeDefined();
 		screen.getByRole("button", { name: "Try again" }).click();
 		expect(await screen.findByText("Coffee")).toBeDefined();
-		expect(screen.getByRole("link", { name: /Coffee/ }).getAttribute("href")).toBe(
-			"/products/1",
-		);
+		expect(screen.getByRole("option", { name: "Drinks" })).toBeDefined();
+		expect(
+			screen.getByRole("link", { name: /Coffee/ }).getAttribute("href"),
+		).toBe("/products/1");
 	});
 
 	it("does not crash when the API returns a non-array body", async () => {

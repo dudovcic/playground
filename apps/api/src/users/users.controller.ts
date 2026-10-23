@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { parsePagination } from "../pagination";
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -6,8 +7,11 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@Get()
-	findAll() {
-		return this.usersService.findAll();
+	findAll(@Query("page") page?: string, @Query("limit") limit?: string) {
+		if (page === undefined && limit === undefined) {
+			return this.usersService.findAll();
+		}
+		return this.usersService.findPage(parsePagination(page, limit));
 	}
 
 	@Get(":id")

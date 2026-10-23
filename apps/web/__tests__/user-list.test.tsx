@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UserList } from "../src/components/user-list";
 
+function userPage(data: unknown[], total = data.length) {
+	return { data, page: 1, limit: 10, total };
+}
+
 const user = {
 	id: 1,
 	name: "Alice Johnson",
@@ -22,7 +26,7 @@ describe("UserList", () => {
 			"fetch",
 			vi.fn().mockResolvedValue({
 				ok: true,
-				json: async () => [user],
+				json: async () => userPage([user]),
 			}),
 		);
 
@@ -40,7 +44,7 @@ describe("UserList", () => {
 			"fetch",
 			vi.fn().mockResolvedValue({
 				ok: true,
-				json: async () => [],
+				json: async () => userPage([]),
 			}),
 		);
 
@@ -50,10 +54,7 @@ describe("UserList", () => {
 	});
 
 	it("shows an error when the API is unreachable", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn().mockRejectedValue(new Error("network")),
-		);
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
 
 		render(<UserList />);
 

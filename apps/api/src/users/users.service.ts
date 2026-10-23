@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "../database/database.service";
+import type { Page, PageQuery } from "../pagination";
 
 @Injectable()
 export class UsersService {
@@ -7,6 +8,22 @@ export class UsersService {
 
 	findAll() {
 		return this.db.query("SELECT * FROM users ORDER BY id ASC");
+	}
+
+	findPage(query: PageQuery): Page<Record<string, unknown>> {
+		const totalRow = this.db.get<{ total: number }>(
+			"SELECT COUNT(*) AS total FROM users",
+		);
+		const data = this.db.query<Record<string, unknown>>(
+			"SELECT * FROM users ORDER BY id ASC LIMIT ? OFFSET ?",
+			[query.limit, query.offset],
+		);
+		return {
+			data,
+			page: query.page,
+			limit: query.limit,
+			total: totalRow?.total ?? 0,
+		};
 	}
 
 	findById(id: number) {
