@@ -1,0 +1,5 @@
+{
+	"extends": "@zapp/typescript-config/library",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist"]
+}

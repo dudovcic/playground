@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import type { CreateProduct, Product } from "@zapp/types";
 import { DatabaseService } from "../database/database.service";
 
 @Injectable()
@@ -6,21 +7,14 @@ export class ProductsService {
 	constructor(private readonly db: DatabaseService) {}
 
 	findAll() {
-		return this.db.query("SELECT * FROM products ORDER BY id ASC");
+		return this.db.query<Product>("SELECT * FROM products ORDER BY id ASC");
 	}
 
 	findById(id: number) {
-		return this.db.get("SELECT * FROM products WHERE id = ?", [id]);
+		return this.db.get<Product>("SELECT * FROM products WHERE id = ?", [id]);
 	}
 
-	create(data: {
-		name: string;
-		description?: string;
-		price: number;
-		sku: string;
-		category: string;
-		brand?: string;
-	}) {
+	create(data: CreateProduct) {
 		const result = this.db.run(
 			"INSERT INTO products (name, description, price, sku, category, brand) VALUES (?, ?, ?, ?, ?, ?)",
 			[
@@ -32,7 +26,7 @@ export class ProductsService {
 				data.brand || null,
 			],
 		);
-		return this.db.get("SELECT * FROM products WHERE id = ?", [
+		return this.db.get<Product>("SELECT * FROM products WHERE id = ?", [
 			result.lastInsertRowid,
 		]);
 	}
